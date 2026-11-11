@@ -9,6 +9,7 @@ import type {
   EditFormValues,
   PendingStatusChange,
   Run,
+  Phase,
 } from "@/types/experiment";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
@@ -81,12 +82,12 @@ export function ExperimentProvider({ children }: Props) {
             memo: form.memo,
           };
         }
-        
+
         return experiment;
       }),
     );
   }
-  
+
   // 【指定したIDの実験だけステータスを変更した新しい配列を作る】
   function updateExperimentStatus(id: string, status: ExperimentStatus) {
     setExperiments((prev) =>
@@ -94,23 +95,40 @@ export function ExperimentProvider({ children }: Props) {
         if (experiment.id === id) {
           return { ...experiment, status };
         }
-        
+
         return experiment;
       }),
     );
   }
-  
-  // 工程を追加する
-    function addRun(id: string, run: Run) {
-      setExperiments((prev) =>
-        prev.map((experiment) => {
-          if (experiment.id === id) {
-            return { ...experiment, runs: [...experiment.runs, run] };
-          }
-          return experiment;
-        }),
-      );
-    }
+
+  // 工程(Run)を追加する
+  function addRun(id: string, run: Run) {
+    setExperiments((prev) =>
+      prev.map((experiment) =>
+        experiment.id === id
+          ? { ...experiment, runs: [...experiment.runs, run] }
+          : experiment,
+      ),
+    );
+  }
+
+  // 工程(Phase)を追加する
+  function addPhase(experimentId: string, runId: string, phase: Phase) {
+    setExperiments((prev) =>
+      prev.map((experiment) => {
+        return experiment.id === experimentId
+          ? {
+              ...experiment,
+              runs: experiment.runs.map((run) =>
+                run.id === runId
+                  ? { ...run, phases: [...run.phases, phase] }
+                  : run,
+              ),
+            }
+          : experiment;
+      }),
+    );
+  }
 
   // 【変更申請受付】
   function requestStatusChange(id: string, status: ExperimentStatus) {
