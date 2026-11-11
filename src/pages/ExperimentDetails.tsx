@@ -1,18 +1,30 @@
 import { useState } from "react";
 import { useParams } from "react-router";
-import { isExperimentStatus } from "../types/experiment";
+import { z } from "zod";
+import { editFormSchema, isExperimentStatus } from "../types/experiment";
 import type { Experiment, EditFormValues } from "../types/experiment";
-import  {statusLabels} from "@/constants/experiment";
+import { statusLabels } from "@/constants/experiment";
 import { useExperiment } from "@/hooks/useExperiment";
+
+// 実験データから編集フォームの初期値を作る
+function createEditForm(experiment: Experiment): EditFormValues {
+  return {
+    name: experiment.name,
+    description: experiment.description,
+    status: experiment.status,
+    sampleName: experiment.sampleName ?? "",
+    plannedStartDate: experiment.plannedStartDate ?? "",
+    plannedEndDate: experiment.plannedEndDate ?? "",
+    memo: experiment.memo,
+  };
+}
 
 function ExperimentDetail() {
   // Contextから共有データを取得
-  const { experiments, updateExperimentStatus, openExperimentList } =
-    useExperiment();
+  const { experiments, openExperimentList, updateExperiment } = useExperiment();
 
   // 選択された実験をURLのIDから取得
   const { id } = useParams();
-
   // 選択された実験の情報
   const experiment = experiments.find((experiment) => experiment.id === id);
 
@@ -30,6 +42,7 @@ function ExperimentDetail() {
     memo: experiment?.memo ?? "",
   });
 
+  const [nameError, setNameError] = useState<string | null>(null);
 
   if (!experiment) {
     return <p>実験が見つかりません。</p>;
@@ -46,18 +59,33 @@ function ExperimentDetail() {
       <h2>{experiment.name}</h2>
       <p>ステータス：{currentStatusLabel}</p>
       <p>概要：{experiment.description || "未入力"}</p>
-      <p>サンプル名：{experiment.sampleName ?? "未入力"}</p>
-      <p>開始予定日：{experiment.plannedStartDate ?? "未入力"}</p>
-      <p>終了予定日：{experiment.plannedEndDate ?? "未入力"}</p>
+      <p>サンプル名：{experiment.sampleName || "未入力"}</p>
+      <p>開始予定日：{experiment.plannedStartDate || "未入力"}</p>
+      <p>終了予定日：{experiment.plannedEndDate || "未入力"}</p>
       <p>メモ：{experiment.memo || "未入力"}</p>
 
       {isEditing ? (
         <div>
+          <label htmlFor="name">実験名:</label>
+          <input
+            id="name"
+            type="text"
+            value={form.name}
+            onChange={(e) => {
+              setForm((prev) => ({ ...prev, name: e.target.value }));
+              setNameError(null);
+            }}
+          />
+          {nameError && <p role="alert">{nameError}</p>}
+          <label htmlFor="status">ステータス：</label>
           <select
+            id="status"
             value={form.status}
             onChange={(e) => {
               const value = e.target.value;
-              if (isExperimentStatus(value)) setForm(value);
+              // 型の絞り込み
+              if (isExperimentStatus(value))
+                setForm((prev) => ({ ...prev, status: value }));
             }}
           >
             <option value="planned">予定</option>
@@ -67,10 +95,56 @@ function ExperimentDetail() {
             <option value="cancelled">中止</option>
             <option value="completed">完了</option>
           </select>
+          <label htmlFor="description">概要：</label>
+          <textarea
+            id="description"
+            value={form.description}
+            onChange={(e) => {
+              setForm((prev) => ({ ...prev, description: e.target.value }));
+            }}
+          />
+          <label htmlFor="sample-name">サンプル名：</label>
+          <input
+            id="sample-name"
+            type="text"
+            value={form.sampleName}
+            onChange={(e) => {
+              setForm((prev) => ({ ...prev, sampleName: e.target.value }));
+            }}
+          />
+          <label htmlFor="planned-start-date">開始予定日：</label>
+          <input
+            id="planned-start-date"
+            type="date"
+            value={form.plannedStartDate}
+            onChange={(e) => {
+              setForm((prev) => ({
+                ...prev,
+                plannedStartDate: e.target.value,
+              }));
+            }}
+          />
+          <label htmlFor="planned-end-date">終了予定日：</label>
+          <input
+            id="planned-end-date"
+            type="date"
+            value={form.plannedEndDate}
+            onChange={(e) => {
+              setForm((prev) => ({ ...prev, plannedEndDate: e.target.value }));
+            }}
+          />
+          <label htmlFor="memo">メモ：</label>
+          <textarea
+            id="memo"
+            value={form.memo}
+            onChange={(e) => {
+              setForm((prev) => ({ ...prev, memo: e.target.value }));
+            }}
+          />
           <button
             type="button"
             onClick={() => {
-              setDraftStatus(experiment.status);
+              setForm(createEditForm(experiment));
               setIsEditing(false);
             }}
           >
@@ -79,7 +153,15 @@ function ExperimentDetail() {
           <button
             type="button"
             onClick={() => {
-              updateExperimentStatus(experiment.id, draftStatus);
+              const result = editFormSchema.safeParse(form);
+              if (!result.success) {
+                const message =
+                  z.flattenError(result.error).fieldErrors.name?.[0] ?? null;
+                setNameError(message);
+                return;
+              }
+              setNameError(null);
+              updateExperiment(experiment.id, result.data);
               setIsEditing(false);
             }}
           >
@@ -90,7 +172,7 @@ function ExperimentDetail() {
         <button
           type="button"
           onClick={() => {
-            setDraftStatus(experiment.status);
+            setForm(createEditForm(experiment));
             setIsEditing(true);
           }}
         >

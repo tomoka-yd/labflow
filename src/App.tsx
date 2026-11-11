@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { initialExperiments } from "./data/experiments";
-import type { Experiment, ExperimentStatus } from "./types/experiment";
+import type {
+  Experiment,
+  ExperimentStatus,
+  EditFormValues,
+} from "./types/experiment";
 import ConfirmDialog from "./components/ConfirmDialog";
 import { Outlet, useNavigate } from "react-router";
 import { ExperimentContext } from "./contexts/ExperimentContext";
@@ -41,14 +45,6 @@ function App() {
     navigate("/experiments");
   }
 
-  // 【指定したIDの実験だけステータスを変更した新しい配列を作る】
-  function updateExperimentStatus(id: string, status: ExperimentStatus) {
-    const updateExperiments = experiments.map((experiment) =>
-      experiment.id === id ? { ...experiment, status } : experiment,
-    );
-    setExperiments(updateExperiments);
-  }
-
   // 【選択した実験の詳細画面を開く】
   function openExperimentDetail(id: string) {
     navigate(`/experiments/${id}`);
@@ -67,6 +63,36 @@ function App() {
 
     // 実験一覧へ戻る
     navigate("/experiments");
+  }
+
+  // 【詳細画面で編集した内容に更新】
+  function updateExperiment(id: string, form: EditFormValues) {
+    setExperiments((prev) =>
+      prev.map((experiment) => {
+        if (experiment.id === id) {
+          return {
+            ...experiment,
+            name: form.name,
+            description: form.description,
+            status: form.status,
+            sampleName: form.sampleName || null,
+            plannedStartDate: form.plannedStartDate || null,
+            plannedEndDate: form.plannedEndDate || null,
+            memo: form.memo,
+          };
+        }
+
+        return experiment;
+      }),
+    );
+  }
+  
+  // 【指定したIDの実験だけステータスを変更した新しい配列を作る】
+  function updateExperimentStatus(id: string, status: ExperimentStatus) {
+    const updateExperiments = experiments.map((experiment) =>
+      experiment.id === id ? { ...experiment, status } : experiment,
+    );
+    setExperiments(updateExperiments);
   }
 
   // 【変更申請受付】
@@ -108,6 +134,7 @@ function App() {
         openExperimentDetail,
         openExperimentCreate,
         addExperiment,
+        updateExperiment,
         updateExperimentStatus,
         requestStatusChange,
       }}

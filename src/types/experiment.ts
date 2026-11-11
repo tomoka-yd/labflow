@@ -72,11 +72,15 @@ export const experimentFormSchema = experimentSchema
     memo: true,
   })
   .extend({
-    name: z.string().trim().min(1),
+    name: z.string().trim().min(1, {error: "実験名を入力してください"}),
     sampleName: z.string(),
     plannedStartDate: z.string(),
     plannedEndDate: z.string(),
   });
+
+export const editFormSchema = experimentFormSchema.extend({
+  status: experimentStatusSchema,
+});
 
 // タイプ定義
 export type ExperimentStatus = z.infer<typeof experimentStatusSchema>;
@@ -102,9 +106,7 @@ export type ExperimentCreateProps = {
 
 export type ExperimentFormValues = z.infer<typeof experimentFormSchema>;
 
-export type EditFormValues = ExperimentFormValues & {
-  status: ExperimentStatus
-};
+export type EditFormValues = z.infer<typeof editFormSchema>;
 
 // void は「この関数の戻り値は使わない」という意味で使う型
 
