@@ -144,15 +144,6 @@ function ExperimentDetail() {
           <button
             type="button"
             onClick={() => {
-              setForm(createEditForm(experiment));
-              setIsEditing(false);
-            }}
-          >
-            キャンセル
-          </button>
-          <button
-            type="button"
-            onClick={() => {
               const result = editFormSchema.safeParse(form);
               if (!result.success) {
                 const message =
@@ -166,6 +157,15 @@ function ExperimentDetail() {
             }}
           >
             保存する
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setForm(createEditForm(experiment));
+              setIsEditing(false);
+            }}
+          >
+            キャンセル
           </button>
         </div>
       ) : (

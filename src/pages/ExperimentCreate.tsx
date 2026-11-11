@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { z } from "zod";
 import { createExperiment } from "../utils/createExperiment";
 import { useExperiment } from "@/hooks/useExperiment";
 import { experimentFormSchema } from "@/types/experiment";
@@ -14,13 +15,19 @@ function ExperimentCreate() {
     plannedEndDate: "",
     memo: "",
   });
+  const [nameError, setNameError] = useState<string | null>(null);
 
   function handleSubmit() {
     // Zodで入力内容を検証する
     const result = experimentFormSchema.safeParse(form);
 
     // 検証失敗なら終了
-    if (!result.success) return;
+    if (!result.success) {
+      const message =
+        z.flattenError(result.error).fieldErrors.name?.[0] ?? null;
+      setNameError(message);
+      return;
+    }
 
     // 検証済みデータから実験を生成する
     const newExperiment = createExperiment(result.data);
@@ -36,8 +43,12 @@ function ExperimentCreate() {
         id="experiment-name"
         type="text"
         value={form.name}
-        onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+        onChange={(e) => {
+          setForm((prev) => ({ ...prev, name: e.target.value }));
+          setNameError(null);
+        }}
       />
+      {nameError && <p role="alert">{nameError}</p>}
 
       <label htmlFor="experiment-description">概要</label>
       <textarea
@@ -85,12 +96,12 @@ function ExperimentCreate() {
         onChange={(e) => setForm((prev) => ({ ...prev, memo: e.target.value }))}
       />
 
-      <button type="button" onClick={openExperimentList}>
-        キャンセル
+      <button type="button" onClick={handleSubmit}>
+        登録する
       </button>
 
-      <button type="button" disabled={!form.name.trim()} onClick={handleSubmit}>
-        登録する
+      <button type="button" onClick={openExperimentList}>
+        キャンセル
       </button>
     </div>
   );
