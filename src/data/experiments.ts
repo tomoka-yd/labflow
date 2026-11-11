@@ -17,7 +17,7 @@ export const initialExperiments: Experiment[] = [
     actualStartDate: null,
     actualEndDate: null,
     memo: "",
-    processes: [],
+    runs: [],
   },
   {
     id: "exp-002",
@@ -34,7 +34,7 @@ export const initialExperiments: Experiment[] = [
     actualStartDate: null,
     actualEndDate: null,
     memo: "",
-    processes: [],
+    runs: [],
   },
   {
     id: "exp-003",
@@ -51,7 +51,7 @@ export const initialExperiments: Experiment[] = [
     actualStartDate: null,
     actualEndDate: null,
     memo: "",
-    processes: [],
+    runs: [],
   },
   {
     id: "exp-004",
@@ -68,6 +68,6 @@ export const initialExperiments: Experiment[] = [
     actualStartDate: null,
     actualEndDate: null,
     memo: "",
-    processes: [],
+    runs: [],
   },
 ];

@@ -96,12 +96,12 @@ function ExperimentCreate() {
         onChange={(e) => setForm((prev) => ({ ...prev, memo: e.target.value }))}
       />
 
-      <button type="button" onClick={handleSubmit}>
-        登録する
-      </button>
-
       <button type="button" onClick={openExperimentList}>
         キャンセル
+      </button>
+
+      <button type="button" onClick={handleSubmit}>
+        登録する
       </button>
     </div>
   );

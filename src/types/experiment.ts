@@ -44,6 +44,22 @@ export const processSchema = z.discriminatedUnion("type", [
   periodProcessSchema,
 ]);
 
+export const stepSchema = processSchema;
+
+export const phaseSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  memo: z.string(),
+  steps: z.array(stepSchema),
+});
+
+export const runSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  memo: z.string(),
+  phases: z.array(phaseSchema),
+});
+
 export const experimentSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -59,7 +75,7 @@ export const experimentSchema = z.object({
   actualStartDate: z.string().nullable(),
   actualEndDate: z.string().nullable(),
   memo: z.string(),
-  processes: z.array(processSchema),
+  runs: z.array(runSchema),
 });
 
 export const experimentFormSchema = experimentSchema
@@ -72,7 +88,7 @@ export const experimentFormSchema = experimentSchema
     memo: true,
   })
   .extend({
-    name: z.string().trim().min(1, {error: "実験名を入力してください"}),
+    name: z.string().trim().min(1, { error: "実験名を入力してください" }),
     sampleName: z.string(),
     plannedStartDate: z.string(),
     plannedEndDate: z.string(),
@@ -97,6 +113,12 @@ export type PeriodProcess = z.infer<typeof periodProcessSchema>;
 
 export type Process = z.infer<typeof processSchema>;
 
+export type Step = z.infer<typeof stepSchema>;
+
+export type Phase = z.infer<typeof phaseSchema>;
+
+export type Run = z.infer<typeof runSchema>;
+
 export type Experiment = z.infer<typeof experimentSchema>;
 
 export type ExperimentCreateProps = {
@@ -107,6 +129,12 @@ export type ExperimentCreateProps = {
 export type ExperimentFormValues = z.infer<typeof experimentFormSchema>;
 
 export type EditFormValues = z.infer<typeof editFormSchema>;
+
+// 変更申請ボックスに入れられる型
+export type PendingStatusChange = {
+  experimentId: string;
+  newStatus: ExperimentStatus;
+};
 
 // void は「この関数の戻り値は使わない」という意味で使う型
 

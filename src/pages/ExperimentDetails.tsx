@@ -5,6 +5,9 @@ import { editFormSchema, isExperimentStatus } from "../types/experiment";
 import type { Experiment, EditFormValues } from "../types/experiment";
 import { statusLabels } from "@/constants/experiment";
 import { useExperiment } from "@/hooks/useExperiment";
+import { createRun } from "@/utils/createRun";
+import RunCreateDialog from "@/components/RunCreateDialog";
+import { RunDetailPanel } from "@/components/RunDetailPanel";
 
 // 実験データから編集フォームの初期値を作る
 function createEditForm(experiment: Experiment): EditFormValues {
@@ -21,7 +24,8 @@ function createEditForm(experiment: Experiment): EditFormValues {
 
 function ExperimentDetail() {
   // Contextから共有データを取得
-  const { experiments, openExperimentList, updateExperiment } = useExperiment();
+  const { experiments, openExperimentList, updateExperiment, addRun } =
+    useExperiment();
 
   // 選択された実験をURLのIDから取得
   const { id } = useParams();
@@ -30,6 +34,9 @@ function ExperimentDetail() {
 
   // 編集モードか閲覧モードか (false：閲覧モード true：編集モード)
   const [isEditing, setIsEditing] = useState(false);
+
+  // Run追加フォーム表示/非表示 (false：非表示 true：表示)
+  const [isAddRunModalOpen, setIsAddRunModalOpen] = useState(false);
 
   // 編集中のステータスを管理するstate
   const [form, setForm] = useState<EditFormValues>({
@@ -42,13 +49,20 @@ function ExperimentDetail() {
     memo: experiment?.memo ?? "",
   });
 
+  // 実験名がない時のエラー
   const [nameError, setNameError] = useState<string | null>(null);
+
+  // 選択されたRunの情報
+  const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
 
   if (!experiment) {
     return <p>実験が見つかりません。</p>;
   }
   // 現在のラベル名
   const currentStatusLabel = statusLabels[experiment.status];
+
+  // クリックして選択したRun
+  const selectedRun = experiment.runs.find((run) => run.id === selectedRunId);
 
   return (
     <div>
@@ -63,13 +77,55 @@ function ExperimentDetail() {
       <p>開始予定日：{experiment.plannedStartDate || "未入力"}</p>
       <p>終了予定日：{experiment.plannedEndDate || "未入力"}</p>
       <p>メモ：{experiment.memo || "未入力"}</p>
+      <div className="flex items-center justify-between">
+        <h3>Run一覧</h3>
+        <button type="button" onClick={() => setIsAddRunModalOpen(true)}>
+          Runを追加
+        </button>
+      </div>
 
+      {experiment.runs.length === 0 ? (
+        <p>Runがまだありません</p>
+      ) : (
+        experiment.runs.map((run) => (
+          <button
+            className="flex "
+            type="button"
+            key={run.id}
+            onClick={() => setSelectedRunId(run.id)}
+          >
+            {run.name}
+          </button>
+        ))
+      )}
+
+      {selectedRun && (
+        <RunDetailPanel
+          run={selectedRun}
+          onClose={() => setSelectedRunId(null)}
+        />
+      )}
+
+      {/* Run追加時のモーダル */}
+      {isAddRunModalOpen && (
+        <RunCreateDialog
+          onCreate={(name, memo) => {
+            const newRun = createRun(name, memo);
+            addRun(experiment.id, newRun);
+            setIsAddRunModalOpen(false);
+          }}
+          onCancel={() => setIsAddRunModalOpen(false)}
+        />
+      )}
+
+      {/* 詳細編集時のモーダル */}
       {isEditing ? (
         <div>
           <label htmlFor="name">実験名:</label>
           <input
             id="name"
             type="text"
+            required
             value={form.name}
             onChange={(e) => {
               setForm((prev) => ({ ...prev, name: e.target.value }));
@@ -144,6 +200,15 @@ function ExperimentDetail() {
           <button
             type="button"
             onClick={() => {
+              setForm(createEditForm(experiment));
+              setIsEditing(false);
+            }}
+          >
+            キャンセル
+          </button>
+          <button
+            type="button"
+            onClick={() => {
               const result = editFormSchema.safeParse(form);
               if (!result.success) {
                 const message =
@@ -157,15 +222,6 @@ function ExperimentDetail() {
             }}
           >
             保存する
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setForm(createEditForm(experiment));
-              setIsEditing(false);
-            }}
-          >
-            キャンセル
           </button>
         </div>
       ) : (

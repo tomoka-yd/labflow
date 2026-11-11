@@ -1,5 +1,5 @@
 import type { Dispatch, SetStateAction } from "react";
-import type { EditFormValues, Experiment, ExperimentStatus } from "../types/experiment";
+import type { EditFormValues, Experiment, ExperimentStatus, Run } from "../types/experiment";
 import { createContext } from "react";
 
 export type ExperimentContextValue = {
@@ -13,6 +13,7 @@ export type ExperimentContextValue = {
   addExperiment: (newExperiment: Experiment) => void;
   updateExperiment: (id: string, form: EditFormValues) => void;
   updateExperimentStatus: (id: string, status: ExperimentStatus) => void;
+  addRun: (id: string, run: Run) => void;
   requestStatusChange: (id: string, status: ExperimentStatus) => void;
 };
 

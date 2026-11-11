@@ -16,6 +16,6 @@ export function createExperiment(form: ExperimentFormValues): Experiment {
     actualStartDate: null,
     actualEndDate: null,
     memo: form.memo,
-    processes: [],
+    runs: [],
   };
 }
