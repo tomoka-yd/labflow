@@ -10,6 +10,7 @@ import type {
   PendingStatusChange,
   Run,
   Phase,
+  Step,
 } from "@/types/experiment";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
@@ -130,6 +131,36 @@ export function ExperimentProvider({ children }: Props) {
     );
   }
 
+  // 工程(Step)を追加する
+  function addStep(
+    experimentId: string,
+    runId: string,
+    phaseId: string,
+    step: Step,
+  ) {
+    setExperiments((prev) =>
+      prev.map((experiment) => {
+        return experiment.id === experimentId
+          ? {
+              ...experiment,
+              runs: experiment.runs.map((run) =>
+                run.id === runId
+                  ? {
+                      ...run,
+                      phases: run.phases.map((phase) =>
+                        phase.id === phaseId
+                          ? { ...phase, steps: [...phase.steps, step] }
+                          : phase,
+                      ),
+                    }
+                  : run,
+              ),
+            }
+          : experiment;
+      }),
+    );
+  }
+
   // 【変更申請受付】
   function requestStatusChange(id: string, status: ExperimentStatus) {
     setPendingStatusChange({ experimentId: id, newStatus: status });
@@ -168,6 +199,8 @@ export function ExperimentProvider({ children }: Props) {
         updateExperiment,
         updateExperimentStatus,
         addRun,
+        addPhase,
+        addStep,
         requestStatusChange,
       }}
     >

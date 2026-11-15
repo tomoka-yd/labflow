@@ -98,6 +98,10 @@ export const editFormSchema = experimentFormSchema.extend({
   status: experimentStatusSchema,
 });
 
+export const phaseNameSchema = z.string().trim().min(1, {
+  error: "Phase名を入力してください",
+});
+
 // タイプ定義
 export type ExperimentStatus = z.infer<typeof experimentStatusSchema>;
 

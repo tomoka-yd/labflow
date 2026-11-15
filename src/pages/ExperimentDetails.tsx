@@ -6,6 +6,7 @@ import type { Experiment, EditFormValues } from "../types/experiment";
 import { statusLabels } from "@/constants/experiment";
 import { useExperiment } from "@/hooks/useExperiment";
 import { createRun } from "@/utils/createRun";
+import {createPhase} from "@/utils/createPhase";
 import RunCreateDialog from "@/components/RunCreateDialog";
 import { RunDetailPanel } from "@/components/RunDetailPanel";
 
@@ -24,7 +25,7 @@ function createEditForm(experiment: Experiment): EditFormValues {
 
 function ExperimentDetail() {
   // Contextから共有データを取得
-  const { experiments, openExperimentList, updateExperiment, addRun } =
+  const { experiments, openExperimentList, updateExperiment, addRun, addPhase } =
     useExperiment();
 
   // 選択された実験をURLのIDから取得
@@ -103,6 +104,10 @@ function ExperimentDetail() {
         <RunDetailPanel
           run={selectedRun}
           onClose={() => setSelectedRunId(null)}
+          onAddPhase={(name, memo) => {
+            const newPhase = createPhase(name, memo);
+            addPhase(experiment.id, selectedRun.id, newPhase);
+          }}
         />
       )}
 
