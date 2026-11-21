@@ -102,6 +102,19 @@ export const phaseNameSchema = z.string().trim().min(1, {
   error: "Phase名を入力してください",
 });
 
+export const stepNameSchema = z.string().trim().min(1, {
+  error: "Step名を入力してください",
+});
+
+export const stepFormSchema = z.object({
+  name: stepNameSchema,
+  type: z.enum(["event", "period"]),
+  plannedDate: z.string(),
+  plannedStartDate: z.string(),
+  plannedEndDate: z.string(),
+  memo: z.string(),
+});
+
 // タイプ定義
 export type ExperimentStatus = z.infer<typeof experimentStatusSchema>;
 
@@ -133,6 +146,8 @@ export type ExperimentCreateProps = {
 export type ExperimentFormValues = z.infer<typeof experimentFormSchema>;
 
 export type EditFormValues = z.infer<typeof editFormSchema>;
+
+export type StepFormValues = z.infer<typeof stepFormSchema>;
 
 // 変更申請ボックスに入れられる型
 export type PendingStatusChange = {

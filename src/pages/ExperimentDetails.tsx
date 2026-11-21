@@ -6,9 +6,10 @@ import type { Experiment, EditFormValues } from "../types/experiment";
 import { statusLabels } from "@/constants/experiment";
 import { useExperiment } from "@/hooks/useExperiment";
 import { createRun } from "@/utils/createRun";
-import {createPhase} from "@/utils/createPhase";
+import { createPhase } from "@/utils/createPhase";
 import RunCreateDialog from "@/components/RunCreateDialog";
 import { RunDetailPanel } from "@/components/RunDetailPanel";
+import { createStep } from "@/utils/createStep";
 
 // 実験データから編集フォームの初期値を作る
 function createEditForm(experiment: Experiment): EditFormValues {
@@ -25,8 +26,14 @@ function createEditForm(experiment: Experiment): EditFormValues {
 
 function ExperimentDetail() {
   // Contextから共有データを取得
-  const { experiments, openExperimentList, updateExperiment, addRun, addPhase } =
-    useExperiment();
+  const {
+    experiments,
+    openExperimentList,
+    updateExperiment,
+    addRun,
+    addPhase,
+    addStep,
+  } = useExperiment();
 
   // 選択された実験をURLのIDから取得
   const { id } = useParams();
@@ -107,6 +114,27 @@ function ExperimentDetail() {
           onAddPhase={(name, memo) => {
             const newPhase = createPhase(name, memo);
             addPhase(experiment.id, selectedRun.id, newPhase);
+          }}
+          onAddStep={(phaseId, stepInput) => {
+            if (stepInput.type === "event") {
+              const newStep = createStep({
+                type: "event",
+                name: stepInput.name,
+                memo: stepInput.memo,
+                plannedDate: stepInput.plannedDate,
+              });
+              addStep(experiment.id, selectedRun.id, phaseId, newStep);
+            }
+            if (stepInput.type === "period") {
+              const newStep = createStep({
+                type: "period",
+                name: stepInput.name,
+                memo: stepInput.memo,
+                plannedStartDate: stepInput.plannedStartDate,
+                plannedEndDate: stepInput.plannedEndDate,
+              });
+              addStep(experiment.id, selectedRun.id, phaseId, newStep);
+            }
           }}
         />
       )}
